@@ -9,7 +9,7 @@ class Demo
         container = document.createElement('div')
         p = document.createElement 'p'
         p.innerHTML = 'Hit any key to toggle between plane or cube-based ground.'
-        p.innerHTML += '<br/>Note that shadow render oddly for ground with plane geometry.'
+        p.innerHTML += '<br/>Note that shadow renders oddly for ground with plane geometry.'
         container.appendChild p
         document.body.appendChild container
 
