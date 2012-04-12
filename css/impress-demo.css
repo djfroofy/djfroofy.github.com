@@ -232,7 +232,7 @@ a:focus {
     font-size: 50px;
     line-height: 72px;
 
-    margin-top: 100px;
+    margin-top: 10px;
 }
 
 .slide q strong {
@@ -701,3 +701,5 @@ a:focus {
     Thanks for reading. I hope you enjoyed it at least as much as I enjoyed writing it
     for you.
 */
+
+pre { padding-top: 18px; }
