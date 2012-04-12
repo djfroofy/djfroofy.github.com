@@ -1,0 +1,336 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1024" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Python and Music .. Beatlounge</title>
+    
+    <meta name="description" content="impress.js is a presentation tool based on the power of CSS3 transforms and transitions in modern browsers and inspired by the idea behind prezi.com." />
+    <meta name="author" content="Bartek Szopka" />
+
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:regular,semibold,italic,italicsemibold|PT+Sans:400,700,400italic,700italic|PT+Serif:400,700,400italic,700italic" rel="stylesheet" />
+
+    <link href="css/impress-demo.css" rel="stylesheet" />
+    <link href="css/sh_whitengrey.css" rel="stylesheet" />
+    <script type="text/javascript" src="js/sh_main.min.js"></script>
+    <script type="text/javascript" src="js/lang/sh_python.js"></script>
+
+
+    <link rel="shortcut icon" href="favicon.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+</head>
+
+<body class="impress-not-supported">
+
+<div class="fallback-message">
+    <p>Your browser <b>doesn't support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p>
+    <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
+</div>
+
+<div id="impress">
+
+<div id="title">
+<em>Beatlounge</em>
+</div>
+
+    <div id="start" class="step slide" data-x="-1000" data-y="-1500">
+        <q>Python and Music and ... Stuff</q>
+        <em>Or .. a shameless plug for a pet project called BeatLounge</em>
+        <br/><br/>
+        <pre>April 12, 2012 @ PyATL
+Drew Smathers
+IRC/twitter/github/launchpad: <strong>djfroofy</strong>
+        </pre>
+    </div>
+
+    <div class="step slide" data-x="0" data-y="-1500">
+        <q>Computer Music</q>
+        <ul><li>Musical Analysis</li>
+            <li>Musical Transcription</li>
+            <li>DSP (real time, post processing)</li>
+            <li>Computer-Generated Music</li>
+            <li>Live Coding</li>
+        </ul>
+    </div>
+
+    <div class="step slide" data-x="0" data-y="-1500" data-z="-3000">
+        <q>What this talk is mostly about ...</q>
+        <ul>
+            <li>Computer-Generated Music</li>
+            <li>Live Coding</li>
+        </ul>
+        <p>...with Python of course</p>
+    </div>
+    <div class="step slide" data-x="1000" data-y="-1500" data-z="-3000">
+        <q>What this talk is mostly about ...</q>
+        <ul>
+            <li>BeatLounge</li>
+            <li>... which is a software sequencer that builds on other Python
+            libraries used in computer music</li>
+        </ul>
+    </div>
+
+    <div class="step slide" data-x="1000" data-y="-1500">
+        <q>Computer Music Languages and Live Coding Software</q>
+        <ul><li>Max/MSP</li>
+            <li>Pure Data</li>
+            <li>ChucK</li>
+            <li>SuperCollider</li>
+            <li>CSound</li>
+            <li>Impromptu</li>
+            <li>...</li>
+            <li>Beatlounge</li>
+        </ul>
+    </div>
+
+    <div class="step slide" data-x="2000" data-y="-1500">
+        <q>Making a Sound with Python</q>
+        <ul>
+            <li>pyaudio</li>
+            <li>fluidsynth</li>
+            <li>pygame/SDL</li>
+            <li>pyo</li>
+        </ul>
+        <q>Recv/Send Music Data with Python</q>
+        <ul>
+            <li>MIDI: pyPortMidi etc</li>
+            <li>OSC: txosc etc</li>
+            <li>Custom: HTTP, JSON-RPC, AMP, etc</li>
+        </ul>
+    </div>
+
+    <div class="step slide" data-x="3000" data-y="-1500">
+        <q>MIDI Overview</q>
+        <p>Focus: Communicating music events including pitch, velocity and control signals</p>
+        <p>Around since the 80s ... (note range: [0,127])<p>
+        <p>0=C, 1=C#, 2=D, ..., 11=B</p>
+        <p>Use NOTE % 12 to compute octave</p>
+        <pre class="sh_python">
+NOTEON [0,127] [0,127]
+NOTEOFF [0,127]
+        </ul>
+    </div>
+
+    <div class="step slide" data-x="4000" data-y="-1500">
+        <q>Fluidsynth</q>
+        <p>Provides a MIDI interfaces for playing sound fonts</p>
+        <pre class="sh_python">
+import time
+from fluidsynth import Synth
+fs = Synth()
+fs.start('coreaudio')
+sfid = fs.sfload("example.sf2")
+track = 0
+fs.program_select(track, sfid, 0, 0)
+# Play some notes
+fs.noteon(track, 60, 127)
+time.sleep(1)
+fs.noteoff(track, 60)
+fs.noteon(track, 64, 127)
+        </pre>
+    </div>
+
+
+    <div class="step slide" data-x="5000" data-y="-1500">
+        <q>BeatLounge (bl.instrument.fsynth)</q>
+        <p>Wraps pyfluidsynth. Some C-ish APIs hidden: sfload(), program_select(), track etc</p>
+        <pre class="sh_python">
+from bl.instrument.fsynth import Instrument
+instr = Instrument('example.sf2', connection='mono')
+instr.playnote(60, 127)
+time.sleep(1)
+instr.stopnote(60)
+instr.playnote(64, 127)
+        </pre>
+    </div>
+
+    <div class="step slide" data-x="6000" data-y="-1500">
+        <q>BeatLounge (bl.comps.midiexample)</q>
+        <pre class="sh_python">
+...
+from bl.midi import MonitorHandler, MidiDispatcher
+from bl.midi import getInput, getOutput, init
+init()
+midi_in = getInput('LPK25')
+midi_out = getOutput('LPK25')
+handler = MonitorHandler({1:instr})
+disp = MidiDispatcher(midi_in, [handler])
+disp.start()
+sender = ClockSender(midi_out)
+sender.start()
+        </pre>
+    </div>
+
+    <div class="step slide" data-x="7000" data-y="-1500">
+        <q>"Strongly Timed"</q>
+        <p>
+        Terminology originated with ChucK. Strongly timed computer music systems provide a
+        "consistent, sample-synchronous view of time" ... "embeds timing control directly
+        in the code"</p>
+        <em>-- http://soundlab.cs.princeton.edu/publications/chuck_sigmm2004.pdf</em>
+        </p>
+    </div>
+
+    <div class="step slide" data-x="8000" data-y="-1500">
+        <q>bl.scheduler.BeatClock - Isochronous scheduler</q>
+        <ul>
+            <li>Uses twisted.internet.task.LoopingCall</li>
+            <li>Schedules function calls based on virtual clock</li>
+            <li>Time quantum: tick</li>
+            <li>Length of a tick depends on TPM (ticks per minute)</li>
+            <li>standard divisions: quarter: eighth, 1/16, triplets, etc</li>
+        </ul>
+    </div>
+
+    <div class="step slide" data-x="9000" data-y="-1500">
+        <q>bl.scheduler.ScheduledEvent</q >
+        <pre class="sh_python">
+# a song.py
+...
+from itertools import cycle
+import random
+notes, octaves = [60, 64, 67], [-12, 0, 12]
+velocity = cycle([127,80,120,90])
+def play_instr():
+    note = random.choice(notes) + random.choice(octaves)
+    clock.callLater(18, instr.stopnote, note)
+    instr.playnote(note, velocity.next())
+event = clock.schedule(play_instr)
+# Start on the next measure, repeat call every 1/8 note
+event.startAfter((1,1), (1,8))
+...
+        </pre>
+        </div>
+
+    <div class="step slide" data-x="10000" data-y="-1500">
+        <q>BeatLounge "Live Coding": bl.console</q>
+<pre class="sh_python">
+$ python bl/console.py
+&gt;&gt;&gt; from tutor import song1
+&gt;&gt;&gt; song1.event.stopAfter((4,1))
+</pre>
+        <p>Hint: Loading soundfonts is very expensive. So ... load
+        all resources and initialize before starting (not during) performance.
+        </p>
+    </div>
+
+    <div class="step slide" data-x="11000" data-y="-1500">
+        <q>bl.console (continued)</q>
+<pre>
+$ python bl/console.py --help
+Usage: console.py [options]
+Options:
+-c, --channels=  Number of channels or a label: stereo,
+                    mono, quad [default: stereo]
+-l, --logfile=   Path to logfile [default: child.log]
+-b, --bpm=       The tempo in beats per minute [default: 130]
+-t, --tpb=       Ticks per beat [default: 24]
+-m, --meter=     The meter (default 4/4) [default: 4/4]
+--version    Display Twisted version and exit.
+--help       Display this help and exit.
+</pre>
+    </div>
+
+    <div class="step slide" data-x="12000" data-y="-1500">
+        <q>bl.console (continued)</q>
+Audio device can be specified as well:
+<pre>
+$ python bl/console.py -m 3/4 -b 150 jack
+</pre>
+    </div>
+
+    <div class="step slide" data-x="13000" data-y="-1500">
+        <q>"Arpeggiator"</q>
+        <p>Popular feature on early synthesizers. Take notes held down to form arpeggio: sequencing of notes.</p>
+        <p>Today: software arpegiators. Play a sequence of notes: up, down, up + down, random, in order, ...</p>
+        <p>Different algorithms can be layered: play X (up, down, ...) over N octaves</p>
+</div>
+
+
+<div class="step slide" data-x="14000" data-y="-1500">
+    <q>Arpeggiators in BeatLounge (bl.player)</q>
+    <ul>
+    <li>Player (alias for NotePlayer), ChordPlayer</li>
+    <li>player = Player(instrument, noteFactory, velocityFactory, ...)</li>
+    <li>startPlaying() # start at next measure</li>
+    <li>stopPlaying() # stop at next measure</li>
+    </ul>
+    <strong>API is actually horrible so I won't go into detail. In flux.</strong>
+</div>
+
+<div class="step slide" data-x="15000" data-y="-1500">
+    <q>Arpeggiators in BeatLounge (bl.player)</q>
+    <pre class="sh_python">
+...
+from bl.player import Player
+notes = cycle([60, 64, 67, 64]).next
+velocity = cycle([127,90,120,80]).next
+dtt = clock.meter.divisionToTicks
+player = Player(instr, notes, velocity,
+                stop=12, interval=dtt(1,8))
+player.startPlaying()
+    </pre>
+</div>
+
+<div class="step slide" data-x="16000" data-y="-1500">
+    <q>Arpeggiators in BeatLounge (bl.arp)</q>
+    <ul>
+        <li>Arp.reset(sequence)</li>
+        <li>AscArp # up</li>
+        <li>DescArp # down</li>
+        <li>RandomArp</li>
+        <li>ArpSwitcher.switch(arp) ... Adder, OctaveArp</li>
+    </ul>
+</div>
+
+<div class="step slide" data-x="17000" data-y="-1500">
+    <q>Arpeggiators in BeatLounge (bl.arp)</q>
+    <pre class="sh_python">
+...
+from bl.arp import Adder, OrderedArp,
+notes = Adder(OctaveArp(RandomArp([0, 4, 7, 9]))
+notes.amount = 36
+velocity = OrderedArp([127,90,110,80,120,127,90,100])
+dtt = clock.meter.divisionToTicks
+player = Player(instr, notes, velocity,
+                    stop=12, interval=dtt(1,8))
+player.startPlaying()
+    </pre>
+</p>
+</div>
+
+<div class="step slide" data-x="18000" data-y="-1500">
+    <q>Demo Time</q>
+</div>
+
+
+<div class="step slide" data-x="19000" data-y="-1500">
+    <q>Links</q>
+    <p>BeatLounge: <a href="https://github.com/djfroofy/beatlounge">https://github.com/djfroofy/beatlounge</a></p>
+    <p>pyfluidsynth: <a href="http://code.google.com/p/pyfluidsynth/">http://code.google.com/p/pyfluidsynth</a></p>
+    <p>pyPortMidi: <a href="http://alumni.media.mit.edu/~harrison/code.html">http://alumni.media.mit.edu/~harrison/code.html</a></p>
+    <p>txosc: <a href="https://bitbucket.org/arjan/txosc/wiki/Home">https://bitbucket.org/arjan/txosc/wiki/Home</a></p>
+    <p>pyo: <a href="http://code.google.com/p/pyo/">http://code.google.com/p/pyo/</a></p>
+</div>
+
+</div>
+
+<div class="hint">
+    <p>Use a spacebar or arrow keys to navigate</p>
+</div>
+<script>
+if ("ontouchstart" in document.documentElement) { 
+    document.querySelector(".hint").innerHTML = "<p>Tap on the left or right to navigate</p>";
+}
+</script>
+
+<script src="js/impress.js"></script>
+<script>impress().init();</script>
+<script>sh_highlightDocument();</script>
+
+</body>
+</html>
+
+
