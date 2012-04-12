@@ -110,7 +110,32 @@ IRC/twitter/github/launchpad: <strong>djfroofy</strong>
         <pre class="sh_python">
 NOTEON [0,127] [0,127]
 NOTEOFF [0,127]
-        </ul>
+        </pre>
+    </div>
+
+    <div class="step slide" data-x="3000" data-y="-1500" data-z="-2000">
+        <q>A Note on Notes</q>
+        <p>MIDI can be used arbitrarily but more often than not: 12-TET. Begin
+           with C=0. A half step is 1.</p>
+        <pre class="sh_python">
+C, Cs, D, Eb, E, F, Fs, G, Gs, A, As, B = range(12)
+chromatic_scale = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+major_scale = [C, D, E, F, G, A, B]
+minor_scale = aelian =  [C, D, Eb, F, G, Gs, As]
+# raise an octave
+notes = [note + 12 for note in major_scale]
+        </pre>
+    </div>
+    <div class="step slide" data-x="3000" data-y="-2500" data-z="-2000">
+        <q>A Note on Notes (continued)</q>
+        <p>A chord is typically a triplet (3 notes). These are fun to play with.
+        You can sound them at the same time or play in sequence (arpeggio)/</p>
+        <pre class="sh_python">
+from itertools import combinations
+C, Cs, D, Eb, E, F, Fs, G, Gs, A, As, B = range(12)
+major_scale = [C, D, E, F, G, A, B]
+major_triplets = combinations(major_scale, 3)
+        </pre>
     </div>
 
     <div class="step slide" data-x="4000" data-y="-1500">
@@ -323,11 +348,31 @@ player.startPlaying()
 </div>
 
 <div class="step slide" data-x="18000" data-y="-1500">
+    <q>Actors</q>
+    <pre class="sh_python">
+def change_phrase(arp, phrases):
+    for i in range(128):
+        phrase = random.choice(phrases[i:])
+        for j in range(8):
+            phrase2 = []
+            for (i1, i2) in zip([phrase[j]] * 4  + [phrase[-j]] * 4, phrase):
+                phrase2.extend([i1,i2])
+            arp.reset(phrase2[:8] + phrase + phrase2[8:] + phrase)
+            yield
+actor = clock.schedule(change_phrase(arp, phrases).next)
+actor.startAfter((1,1), (4,1))
+    </pre>
+</div>
+
+<div class="step slide" data-x="19000" data-y="-1500">
     <q>Demo Time</q>
+    <pre class="sh_python">
+
+    </pre>
 </div>
 
 
-<div class="step slide" data-x="19000" data-y="-1500">
+<div class="step slide" data-x="20000" data-y="-1500">
     <q>Links</q>
     <p>BeatLounge: <a href="https://github.com/djfroofy/beatlounge">https://github.com/djfroofy/beatlounge</a></p>
     <p>pyfluidsynth: <a href="http://code.google.com/p/pyfluidsynth/">http://code.google.com/p/pyfluidsynth</a></p>
