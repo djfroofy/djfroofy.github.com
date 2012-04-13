@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=1024" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>Python and Music .. Beatlounge</title>
+    <title>Making Music with Python and BeatLounge</title>
     
     <meta name="description" content="impress.js is a presentation tool based on the power of CSS3 transforms and transitions in modern browsers and inspired by the idea behind prezi.com." />
     <meta name="author" content="Bartek Szopka" />
@@ -36,8 +36,7 @@
 </div>
 
     <div id="start" class="step slide" data-x="-1000" data-y="-1500">
-        <q>Python and Music and ... Stuff</q>
-        <em>Or .. a shameless plug for a pet project called BeatLounge</em>
+        <q>Making Music with Python and BeatLounge</q>
         <br/><br/>
         <pre>April 12, 2012 @ PyATL
 Drew Smathers
@@ -55,21 +54,16 @@ IRC/twitter/github/launchpad: <strong>djfroofy</strong>
         </ul>
     </div>
 
-    <div class="step slide" data-x="0" data-y="-1500" data-z="-3000">
+    <div class="step slide" data-x="0" data-y="-1500" data-z="-1000" data-rotate-y="40">
         <q>What this talk is mostly about ...</q>
         <ul>
             <li>Computer-Generated Music</li>
             <li>Live Coding</li>
-        </ul>
-        <p>...with Python of course</p>
-    </div>
-    <div class="step slide" data-x="1000" data-y="-1500" data-z="-3000">
-        <q>What this talk is mostly about ...</q>
-        <ul>
             <li>BeatLounge</li>
             <li>... which is a software sequencer that builds on other Python
             libraries used in computer music</li>
         </ul>
+        <p>...with Python of course</p>
     </div>
 
     <div class="step slide" data-x="1000" data-y="-1500">
@@ -113,28 +107,28 @@ NOTEOFF [0,127]
         </pre>
     </div>
 
-    <div class="step slide" data-x="3000" data-y="-1500" data-z="-2000">
+    <div class="step slide" data-x="3000" data-y="-1500" data-z="-2000" data-rotate-x="40">
         <q>A Note on Notes</q>
-        <p>MIDI can be used arbitrarily but more often than not: 12-TET. Begin
-           with C=0. A half step is 1.</p>
+        <p>MIDI can be used arbitrarily but more often than not application is
+        for 12TET music. Begin with C=0. A half step is 1.</p>
         <pre class="sh_python">
 C, Cs, D, Eb, E, F, Fs, G, Gs, A, As, B = range(12)
 chromatic_scale = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 major_scale = [C, D, E, F, G, A, B]
-minor_scale = aelian =  [C, D, Eb, F, G, Gs, As]
+minor_scale = aeolian =  [C, D, Eb, F, G, Gs, As]
 # raise an octave
 notes = [note + 12 for note in major_scale]
         </pre>
     </div>
-    <div class="step slide" data-x="3000" data-y="-2500" data-z="-2000">
+    <div class="step slide" data-x="3000" data-y="-2500" data-z="-2000" data-rotate-x="-40">
         <q>A Note on Notes (continued)</q>
-        <p>A chord is typically a triplet (3 notes). These are fun to play with.
-        You can sound them at the same time or play in sequence (arpeggio)/</p>
+        <p>A chord is typically a triads (3 notes). These are fun to play with.
+        You can sound them at the same time or play in sequence (arpeggio).</p>
         <pre class="sh_python">
 from itertools import combinations
 C, Cs, D, Eb, E, F, Fs, G, Gs, A, As, B = range(12)
 major_scale = [C, D, E, F, G, A, B]
-major_triplets = combinations(major_scale, 3)
+all_triads = combinations(major_scale, 3)
         </pre>
     </div>
 
@@ -198,20 +192,9 @@ sender.start()
         </p>
     </div>
 
-    <div class="step slide" data-x="8000" data-y="-1500">
-        <q>bl.scheduler.BeatClock - Isochronous scheduler</q>
-        <ul>
-            <li>Uses twisted.internet.task.LoopingCall</li>
-            <li>Schedules function calls based on virtual clock</li>
-            <li>Time quantum: tick</li>
-            <li>Length of a tick depends on TPM (ticks per minute)</li>
-            <li>standard divisions: quarter: eighth, 1/16, triplets, etc</li>
-        </ul>
-    </div>
-
-    <div class="step slide" data-x="8000" data-y="-1500" data-z="-1000" rotate-y="90">
-        <q>"Strongly Timed" Python Quiz</q>
-        <p>Is the following system strongly-timed?</p>
+    <div class="step slide" data-x="8000" data-y="-1500" data-z="-1000" data-rotate="90">
+        <q>"Strongly Timed" Pop Quiz</q>
+        <p>Question: Is the following system strongly-timed?</p>
         <pre class="sh_python">
 import time
 tick = 60. / 130. / 24.
@@ -228,6 +211,49 @@ def my_music_player(instruments, schedules):
                     instr.stopnote(*args)
         </pre>
     </div>
+    <div class="step slide" data-x="9000" data-y="-1500" data-z="-1000" data-rotate="180">
+        <q>"Strongly Timed" Pop Quiz (continued)</q>
+        <p>Answer: <strong>NO</strong> ... So many problems</p>
+        <pre class="sh_python">
+# tick + &lt;op time&gt; + &lt;preemption time&gt;
+while True:
+    time.sleep(tick)
+    # &lt;preemption time&gt;
+    for (instr, schedule) in zip(instruments, schedules):
+        # &lt;op time&gt; + &lt;preemption time&gt;
+        (t, command, args) = schedule[0]
+        # Equality may never pass - we might end up "ahead"
+        # of t forever. So ... this is not sample-synchronous.
+        if time.time() == t:
+            # ...
+        </pre>
+    </div>
+    <div class="step slide" data-x="10000" data-y="-1500" data-z="-1000" data-rotate="270">
+        <q>Is BeatLounge Strongly Timed?</q>
+        <p>Answer: <strong>ALMOST</strong> ... So many problems</p>
+        <p></p>
+        <p>
+Systems like ChucK are strongly timed and support for very high sample rates.
+BeatLounge (or CPython, really) is "good enough" for MIDI sequencing but not fast enough
+for DSP. &lt;Insert Actual Metrics&gt;
+        </p>
+        <p>
+        BeatLounge provides sample synchronous view of time: clock.ticks vs time.time()
+        </p>
+    </div>
+
+    <div class="step slide" data-x="8000" data-y="-1500">
+        <q>bl.scheduler.BeatClock - Isochronous scheduler</q>
+        <ul>
+            <li>Uses <strong>twisted.internet.task.LoopingCall</strong></li>
+            <li>Sample-synchronous view of time: clock.ticks</li>
+            <li>Schedules function calls based on virtual clock</li>
+            <li>Time quantum: tick</li>
+            <li>Length of a tick depends on TPM (ticks per minute)</li>
+            <li>standard divisions: quarter: eighth, 1/16, triplets, etc</li>
+        </ul>
+    </div>
+
 
 
     <div class="step slide" data-x="9000" data-y="-1500">
@@ -345,6 +371,32 @@ player = Player(instr, notes, velocity,
 player.startPlaying()
     </pre>
 </p>
+</div>
+
+<div class="step slide" data-x="17000" data-z="-200" data-y="-2500">
+    <q>"Rudiments"</q>
+    <p>"... one of the basic patterns used in rudimental drumming. These patterns of drum strokes can be combined in many ways to create music."
+    <p>--<a href="http://en.wikipedia.org/wiki/Drum_rudiment">http://en.wikipedia.org/wiki/Drum_rudiment</a>
+    <p><strong>Examples</strong>: Five Stroke Roll, Six Stroke Roll, Paradiddle, etc.
+    <p><strong>Components</strong>: Strokes ([R,L,R,L,R,R]) + Timing
+</div>
+
+<div class="step slide" data-x="17000" data-z="-400" data-y="-3500">
+    <q>Rudiments in BeatLounge</q>
+    <pre class="sh_python">
+from bl.rudiments import FiveStrokeRoll
+fsr = FiveStrokeRoll()
+drum_player = RudimentSchedulePlayer(drum, fsr, 35, 25)
+
+
+
+# RudimentSchedulePlayer first gets the stroke from the rudiment:
+list(fsr.strokes(35, 25)) = [35, 35, 25, 25, 35,
+                                              25, 25, 35, 35, 25]
+# ... then a cycle over the time values
+list(fsr.time()) == [0, 6, 12, 18, 24,
+                                48, 54, 60, 66, 72]
+    </pre>
 </div>
 
 <div class="step slide" data-x="18000" data-y="-1500">
